@@ -69,12 +69,12 @@ void App::init()
         
     }
 
-    /* for(int i = arrLen / 3;i < arrLen / 2; i++)
+    for(int i = arrLen / 3;i < arrLen / 2; i++)
     {
         currentState[i] = 1;
     }
-
-    for(int i = 0;i < 5000; i++)
+    
+    /* for(int i = 0;i < 5000; i++)
     {
         int x = rand() % (windowWidth / 4);
         int y = rand() % (windowHeight / 4);
