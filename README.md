@@ -2,4 +2,4 @@
 Game of Life visualization in C++ &amp; SFML
 
 
-![Alt text](screenshot/gol.png "Game of Life")
+![Alt text](screenshots/gol.png "Game of Life")
