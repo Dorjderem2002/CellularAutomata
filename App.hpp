@@ -29,9 +29,10 @@ private:
     int windowWidth = 600, windowHeight = 600, pixelSize = 4;
     int arrLen = 0;
 
-    bool stateRenderVertex = false;
+    bool stateRenderVertex = true;
+    bool paused = false;
 
-    std::vector<sf::VertexArray> sPixels;
+    sf::VertexArray sPixels;
 
     std::vector<sf::RectangleShape> rects;
 };
