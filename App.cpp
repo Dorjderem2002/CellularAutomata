@@ -33,22 +33,15 @@ void App::init()
     memset(currentState,0,sizeof(int) * arrLen);
 
     srand(time(NULL));
-    for(int i = 0;i < 5000; i++)
-    {
-        int x = rand() % (windowWidth / 4);
-        int y = rand() % (windowHeight / 4);
-
-        currentState[y * windowWidth / 4 + x] = 1;
-    }
-    if(stateRenderVertex)
-    {
-        sPixels.resize(arrLen);
-    }
-    else
+    
+    if(!stateRenderVertex)
     {
         rects.resize(arrLen);
     }
-    
+    else
+    {
+        sPixels.resize(arrLen * 4);
+    }
     
     for(int i = 0;i < arrLen; i++)
     {
@@ -56,15 +49,16 @@ void App::init()
         int y = i / (windowWidth / pixelSize);
         if(stateRenderVertex)
         {
-            sPixels[i] = sf::VertexArray(sf::Quads, pixelSize);
-            sPixels[i][0].position = sf::Vector2f(x * pixelSize, y * pixelSize);
-            sPixels[i][1].position = sf::Vector2f(x * pixelSize + pixelSize, y * pixelSize);
-            sPixels[i][2].position = sf::Vector2f(x * pixelSize + pixelSize, y * pixelSize + pixelSize);
-            sPixels[i][3].position = sf::Vector2f(x * pixelSize, pixelSize);
-            sPixels[i][0].color = sf::Color::Black;
-            sPixels[i][1].color = sf::Color::Black;
-            sPixels[i][2].color = sf::Color::Black;
-            sPixels[i][3].color = sf::Color::Black;
+            sf::Vertex quad[4];
+            quad[0].position = sf::Vector2f(x * pixelSize, y * pixelSize);
+            quad[1].position = sf::Vector2f(x * pixelSize + pixelSize, y * pixelSize);
+            quad[2].position = sf::Vector2f(x * pixelSize + pixelSize, y * pixelSize + pixelSize);
+            quad[3].position = sf::Vector2f(x * pixelSize, y * pixelSize + pixelSize);
+            for(int k = 0; k < 4; k++)
+            {
+                quad[k].color = sf::Color::Black;
+                sPixels[i * 4 + k] = quad[k];
+            }
         }
         else
         {
@@ -78,22 +72,42 @@ void App::init()
     /* for(int i = arrLen / 3;i < arrLen / 2; i++)
     {
         currentState[i] = 1;
+    }
+
+    for(int i = 0;i < 5000; i++)
+    {
+        int x = rand() % (windowWidth / 4);
+        int y = rand() % (windowHeight / 4);
+
+        currentState[y * windowWidth / 4 + x] = 1;
     } */
 }
 
 void App::update()
 {
-    for(int i = 0; i < arrLen; i++)
+    if(!paused)
     {
-        int numberOfNeighbors = getNeighbor(i);
-        if (currentState[i] == 1 && (numberOfNeighbors < 2 || numberOfNeighbors > 3))
+        for(int i = 0; i < arrLen; i++)
         {
-            outputState[i] = 0;
+            int numberOfNeighbors = getNeighbor(i);
+
+            if (currentState[i] == 1 && (numberOfNeighbors < 2 || numberOfNeighbors > 3))
+            {
+                outputState[i] = 0;
+            }
+            else if(currentState[i] == 0 && numberOfNeighbors == 3)
+            {
+                outputState[i] = 1;
+            }
         }
-        else if(currentState[i] == 0 && numberOfNeighbors == 3)
-        {
-            outputState[i] = 1;
-        }
+    }
+
+    if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+    {
+        sf::Vector2i mousePos = sf::Mouse::getPosition(*renderWindow);
+        int x = mousePos.x / 4;
+        int y = mousePos.y / 4;
+        outputState[y * windowWidth / 4 + x] = 1;
     }
 
     for(int i = 0; i < arrLen; i++)
@@ -104,7 +118,7 @@ void App::update()
             {
                 for(int j = 0; j < 4; j++)
                 {
-                    sPixels[i][j].color = sf::Color::White;
+                    sPixels[i * 4 + j].color = sf::Color::White;
                 }
             }
             else
@@ -119,7 +133,7 @@ void App::update()
             {
                 for(int j = 0; j < 4; j++)
                 {
-                    sPixels[i][j].color = sf::Color::Black;
+                    sPixels[i * 4 + j].color = sf::Color::Black;
                 }
             }
             else
@@ -133,14 +147,11 @@ void App::update()
 
 void App::render()
 {
-    renderWindow->clear();
+    renderWindow->clear(sf::Color(30,30,30,255));
 
     if(stateRenderVertex)
     {
-        for(auto i : sPixels)
-        {
-            renderWindow->draw(i);
-        }  
+        renderWindow->draw(sPixels);  
     }
     else
     {
@@ -149,8 +160,6 @@ void App::render()
             renderWindow->draw(i);
         }
     }
-    
-      
 
     renderWindow->display();
 }
@@ -163,6 +172,13 @@ void App::handleEvent(sf::Event ev)
         {
             renderWindow->close();
             running = false;
+        }
+        if(ev.type == sf::Event::KeyPressed)
+        {
+            if(ev.key.code == sf::Keyboard::Space)
+            {
+                paused = (bool)abs((int)paused - 1);
+            }
         }
     }
 }
